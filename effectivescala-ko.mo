@@ -60,113 +60,111 @@
 복잡성은 정교함이 지불해야 할 세금이다(늘 비용보다 더 가치있게 사용해야 
 한다.)
 
-
-그러면 즐거운 시간 되기를 바란다.
+그러면 즐거운 시간 되기 바란다.
 
 ## 서식
 
-The specifics of code *formatting* -- so long as they are practical --
-are of little consequence. By definition style cannot be inherently
-good or bad and almost everybody differs in personal
-preference. However the *consistent* application of the same 
-formatting rules will almost always enhance
-readability. A reader already familiar with a particular style does
-not have to grasp yet another set of local conventions, or decipher
-yet another corner of the language grammar.
+코드 *서식*에 대한 (실용적인 관계로 매우 긴) 세부 항목이
+중요하진 않다. (코드를) 정의하는 형식은 본질적으로 좋거나 
+나쁘다고 할 수 없고 거의 모든 사람의 개인적인 취향이 다르기 
+때문이다. 하지만 동일한 서식 규칙을 일관되게 
+적용하면 대부분 가독성을 개선하는 효과가 있을 
+것이다. 이미 특정 형식에 익숙한 사람은 
+파일마다 다른 관례를 이해하거나 전혀 다른 문법을 
+해독할 필요가 없다.
 
-This is of particular importance to Scala, as its grammar has a high
-degree of overlap. One telling example is method invocation: Methods
-can be invoked with "`.`", with whitespace, without parenthesis for
-nullary or unary methods, with parenthesis for these, and so on.
-Furthermore, the different styles of method invocations expose
-different ambiguities in its grammar! Surely the consistent
-application of a carefully chosen set of formatting rules will resolve
-a great deal of ambiguity for both man and machine.
+이는 스칼라에서 특히 중요한데, 스칼라는 문법이 매우
+중복되기 때문이다. 예 하나를 들자면 메서드 호출이다. 메서드는
+"`.`"로, 그리고 공백으로, 또 매개변수가 없거나 하나인 
+메서드는 괄호도 생략하는 등 다양하게 호출할 수 있다. 
+더욱이, 이렇게 다양한 메서드 호출 형식 때문에 문법도 
+여러면에서 모호해진다. 확실히 세심하게 선정된 서식 
+규칙을 일관되게 적용하면 사람과 기계 모두 모호한 문법을
+다뤄야 하는 곤란한 상황에서 벗어나게 될 것이다.
 
-We adhere to the [Scala style
-guide](http://docs.scala-lang.org/style/) plus the following rules.
+트위터는 [스칼라 서식 
+지침서](http://docs.scala-lang.org/style/)와 더불어 다음 규칙을 지킨다.
 
-### Whitespace
+### 공백
 
-Indent by two spaces. Try to avoid lines greater than 100 columns in
-length. Use one blank line between method, class, and object definitions.
+공백 두 칸으로 들여쓴다. 가능한 한 줄이 100 자가 넘지 않도록 
+한다. 메서드, 클래스, 객체 정의 사이에는 한 줄 띄운다.
 
-### Naming
+### 작명
 
 <dl class="rules">
-<dt>Use short names for small scopes</dt>
-<dd> <code>i</code>s, <code>j</code>s and <code>k</code>s are all but expected
-in loops. </dd>
-<dt>Use longer names for larger scopes</dt>
-<dd>External APIs should have longer and explanatory names that confer meaning.
-<code>Future.collect</code> not <code>Future.all</code>.
+<dt>작은 범위(scope)에는 짧은 이름을 사용</dt>
+<dd> <code>i</code>, <code>j</code>, <code>k</code> 모두 가능지만
+특히 반복에 사용된다.</dd>
+<dt>범위(scope)가 크면 긴 이름을 사용</dt>
+<dd>외부 API의 이름은 길고 의도를 설명해야 한다.</dd>
+<code>Future.all</code>가 아닌 <code>Future.collect</code>.
 </dd>
-<dt>Use common abbreviations but eschew esoteric ones</dt>
+<dt>통용되는 약자만 사용하고 난해한 약자는 지양</dt>
 <dd>
-Everyone
-knows <code>ok</code>, <code>err</code> or <code>defn</code> 
-whereas <code>sfri</code> is not so common.
+<code>ok</code>, <code>err</code>, <code>defn</code>은 
+모두 알지만 <code>sfri</code>는 그다지 일반적이지
+않다.
 </dd>
-<dt>Don't rebind names for different uses</dt>
-<dd>Use <code>val</code>s</dd>
-<dt>Avoid using <code>`</code>s to overload reserved names.</dt>
-<dd><code>typ</code> instead of <code>`type</code>`</dd>
-<dt>Use active names for operations with side effects</dt>
-<dd><code>user.activate()</code> not <code>user.setActive()</code></dd>
-<dt>Use descriptive names for methods that return values</dt>
-<dd><code>src.isDefined</code> not <code>src.defined</code></dd>
-<dt>Don't prefix getters with <code>get</code></dt>
-<dd>As per the previous rule, it's redundant: <code>site.count</code> not <code>site.getCount</code></dd>
-<dt>Don't repeat names that are already encapsulated in package or object name</dt>
-<dd>Prefer:
-<pre><code>object User {
-  def get(id: Int): Option[User]
-}</code></pre> to
+<dt>이름을 다른 용도로 재사용하지 않음</dt>
+<dd><code>val</code>을 사용하라.</dd>
+<dt>예약된 이름을 중복 사용할 때 <code>`</code>를 쓰지 않음</dt>
+<dd><code>`type</code>`보다는 <code>typ</code>이라고 한다.</dd>
+<dt>부수 효과가 있는 동작은 능동태를 사용</dt>
+<dd><code>user.setActive()</code> 대신 <code>user.activate()</code>라고 한다.</dd>
+<dt>값을 반환하는 메서드는 서술적인 이름을 사용</dt>
+<dd><code>src.defined</code> 대신 <code>src.isDefined</code>라고 한다.</dd>
+<dt>값을 얻는 메서드에 <code>get</code> 접두사를 붙이지 않음</dt>
+<dd>위 규칙과 같이, 이는 과잉 표현이다. <code>site.getCount</code> 대신 <code>site.count</code>라고 한다.</dd>
+<dt>이미 패키지나 객체 이름으로 캡슐화된 이름은 반복하지 않음</dt>
+<dd>
 <pre><code>object User {
   def getUser(id: Int): Option[User]
-}</code></pre>They are redundant in use: <code>User.getUser</code> provides
-no more information than <code>User.get</code>.
+}</code></pre> 라고 하기 보다는
+<pre><code>object User {
+  def get(id: Int): Option[User]
+}</code></pre> 라고 한다. 사용할 때 장황해진다. <code>User.getUser</code>가
+<code>User.get</code>보다 추가로 주는 정보는 없다.
 </dd>
 </dl>
 
 
-### Imports
+### 임포트(Imports)
 
 <dl class="rules">
-<dt>Sort import lines alphabetically</dt>
-<dd>This makes it easy to examine visually, and is simple to automate.</dd>
-<dt>Use braces when importing several names from a package</dt>
+<dt>임포트는 알파벳 순으로 정렬</dt>
+<dd>시각적으로 확인하기 쉬워지며, 자동화하기 간단하다.</dd>
+<dt>한 패키지에서 여러 이름을 임포트할 때에는 중괄호를 사용</dt>
 <dd><code>import com.twitter.concurrent.{Broker, Offer}</code></dd>
-<dt>Use wildcards when more than six names are imported</dt>
-<dd>e.g.: <code>import com.twitter.concurrent._</code>
-<br />Don't apply this blindly: some packages export too many names</dd>
-<dt>When using collections, qualify names by importing 
-<code>scala.collection.immutable</code> and/or <code>scala.collection.mutable</code></dt>
-<dd>Mutable and immutable collections have dual names. 
-Qualifiying the names makes is obvious to the reader which variant is being used (e.g. "<code>immutable.Map</code>")</dd>
-<dt>Do not use relative imports from other packages</dt>
-<dd>Avoid <pre><code>import com.twitter
-import concurrent</code></pre> in favor of the unambiguous <pre><code>import com.twitter.concurrent</code></pre></dd>
-<dt>Put imports at the top of the file</dt>
-<dd>The reader can refer to all imports in one place.</dd>
+<dt>이름을 여섯가지 이상 임포트할 때에는 와일드카드를 사용</dt>
+<dd>예: <code>import com.twitter.concurrent._</code>
+<br />무조건 사용하지는 말아라. 어떤 패키지에는 너무 많은 이름이 포함돼 있다.</dd>
+<dt>집합체(collection)를 사용할 때에는, <code>scala.collection.immutable</code>와 <code>scala.collection.mutable</code>로 이름을 분명하게 규정</dt>
+<dd>가변(Mutable) 집합체와 불변(immutable) 집합체는 같은 이름을 쓴다. 
+이름을 정규화(Qualifiy)하면 코드를 읽는 사람이 어떤 유형인지 혼돈하지 않는다. (예 "<code>immutable.Map</code>")</dd>
+<dt>다른 패키지에서 상대 임포트를 하지 않음</dt>
+<dd><pre><code>import com.twitter
+import concurrent</code></pre> 대신 명백하게 <pre><code>import com.twitter.concurrent</code></pre>라고 한다.</dd>
+<dt>임포트는 파일 상단에 배치</dt>
+<dd>코드를 읽는 사람이 한 곳에서 모든 임포트를 조회할 수 있다.</dd>
 </dl>
 
-### Braces
+### 중괄호
 
-Braces are used to create compound expressions (they serve other uses
-in the "module language"), where the value of the compound expression
-is the last expression in the list. Avoid using braces for simple
-expressions; write
+중괄호는 복합 식을 만드는 데 사용("모듈 언어"에서는 용도가 
+다름) 되는데, 여러 식 중 마지막 식이 복합 식의 값은 된다. 
+단순한 식에는 중괄호를 사용하지 않는다. 메서드 본문을 구문으로
+구분하고 싶다고 해도
 
 	def square(x: Int) = x*x
 	
-.LP but not
+.LP 라고 쓰는 대신
 
 	def square(x: Int) = {
 	  x * x
 	}
 	
-.LP even though it may be tempting to distinguish the method body syntactically. The first alternative has less clutter and is easier to read. <em>Avoid syntactical ceremony</em> unless it clarifies.
+.LP 이라고 한다. 둘 중 먼저 것이 어수선하지 않고 읽기 쉽다. 이해하기 쉽게 만들지 않는 한 <em>구문 장식은 피하자</em>.
 
 ### Pattern matching
 
