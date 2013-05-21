@@ -166,10 +166,9 @@ import concurrent</code></pre> 대신 명백하게 <pre><code>import com.twitter
 	
 .LP 이라고 한다. 둘 중 먼저 것이 어수선하지 않고 읽기 쉽다. 이해하기 쉽게 만들지 않는 한 <em>구문 장식은 피하자</em>.
 
-### Pattern matching
+### 패턴 매칭
 
-Use pattern matching directly in function definitions whenever applicable;
-instead of
+가능하다면 함수 정의에 패턴 매칭을 직접 사용한다.
 
 	list map { item =>
 	  item match {
@@ -178,140 +177,143 @@ instead of
 	  }
 	}
 	
-.LP collapse the match
+.LP 라고 하는 대신 match를 생략해서
 
 	list map {
 	  case Some(x) => x
 	  case None => default
 	}
 
-.LP it's clear that the list items are being mapped over &mdash; the extra indirection does not elucidate.
+.LP 라고 하자. 이 편이 리스트의 항목이 전부 사상된다는 점이 명확하다. 간접적으로 표현한다고 의미가 더 살지는 않는다.
 
-### Comments
+### 주석
 
-Use [ScalaDoc](https://wiki.scala-lang.org/display/SW/Scaladoc) to
-provide API documentation. Use the following style:
+API 문서를 작성할 때에는 [ScalaDoc](https://wiki.scala-lang.org/display/SW/Scaladoc)을
+사용한다. 다음과 같이하고
 
 	/**
-	 * ServiceBuilder builds services 
+	 * ServiceBuilder는 서비스를 구축한다.
 	 * ...
 	 */
 	 
-.LP but <em>not</em> the standard ScalaDoc style:
+.LP 표준 ScalaDoc 형식은 사용하지 <em>말자</em>.
 
-	/** ServiceBuilder builds services
+	/** ServiceBuilder는 서비스를 구축한다.
 	 * ...
 	 */
 
-Do not resort to ASCII art or other visual embellishments. Document
-APIs but do not add unnecessary comments. If you find yourself adding
-comments to explain the behavior of your code, ask first if it can be
-restructured so that it becomes obvious what it does. Prefer
-"obviously it works" to "it works, obviously" (with apologies to Hoare).
+아스키(ASCII) 그림이나 다른 시각적인 장치에 의존하지 않는다. 문서
+API외의 불필요한 주석은 추가하지 않는다. 코드의 작동 방식이 모호해서
+주석으로 설명해야 한다고 되면, 하는 일이 분명하게 드러나도록 
+구조를 개선할 수 있는지 먼저 생각해보자. 그저 정확히 동작하기 보다
+의도를 분명하게 드러내도록 한다. 호어(Hoare)에게는 미안하지만...
 
-## Types and Generics
+## 자료형(Type)과 지네릭(Generics)
 
-The primary objective of a type system is to detect programming
-errors. The type system effectively provides a limited form of static
-verification, allowing us to express certain kinds of invariants about
-our code that the compiler can verify. Type systems provide other
-benefits too of course, but error checking is its Raison d&#146;&Ecirc;tre.
+자료형 체계(Type System)의 주 목적은 프로그래밍 오류를 탐지하는 
+것이다. 자료형 체계는 효과적으로 정적 검증이라는 제한된 
+틀을 제공하는데, 코드에 일종의 불변식을 표현해서 컴파일러가 
+검증하도록 할 수 있다. 물론 자료형 체계에는 다른 이점도 있지만, 
+오류 확인이야 말로 타입 시스템의 레종 데트르(Raison d&#146;&Ecirc;tre), 존재의 이유이다.
 
-Our use of the type system should reflect this goal, but we must
-remain mindful of the reader: judicious use of types can serve to
-enhance clarity, being unduly clever only obfuscates.
+자료형 체계는 이 목적을 반영해서 사용해야 하며, 독자도 
+여전해 생각해야 한다. 자료형을 현명하게 사용하면 더 명료하게 
+만들 수 있다. 지나치게 영리하면 혼돈만 일어난다.
 
-Scala's powerful type system is a common source of academic
-exploration and exercise (eg. [Type level programming in
-Scala](http://apocalisp.wordpress.com/2010/06/08/type-level-programming-in-scala/)).
-While a fascinating academic topic, these techniques rarely find
-useful application in production code. They are to be avoided.
+스칼라의 강력한 자료형 체계는 학문적으로 탐구와 실습의 일반적인 
+대상이다(예: [스칼라로 하는 자료형 수준 프로그래밍(Type level programming in Scala)](http://apocalisp.wordpress.com/2010/06/08/type-level-programming-in-scala/)).
+이런 기술은 학문적 주제로는 멋질지 몰라도, 상용 코드에 유용하게 
+적용되는 일이 드물다. 이런 것은 피해야 한다.
 
-### Return type annotations
+### 반환 자료형 지정
 
-While Scala allows these to be omitted, such annotations provide good
-documentation: this is especially important for public methods. Where a
-method is not exposed and its return type obvious, omit them.
+스칼라는 반환 자료형을 생략할 수 있지만, 명기하면 좋은 문서가 
+된다. 이는 특히 공용 메서드(public method)에 중요하다. 외부에
+노출되지 않는 메서드라면 명백하게 반환 자료형은 생략한다. 
 
-This is especially important when instantiating objects with mixins as
-the scala compiler creates singleton types for these. For example, `make`
-in:
+이는 특히 믹스인을 한 객체를 생성할 때 중요한데 스칼라 컴파일러가 
+싱글턴 자료형을 생성하기 때문이다. 예를 들어, 다음 코드의 `make`는
+<code>Service</code>인 반환 자료형이 <em>없다</em>.
 
 	trait Service
 	def make() = new Service {
 	  def getId = 123
 	}
 
-.LP does <em>not</em> have a return type of <code>Service</code>; the compiler creates the refinement type <code>Object with Service{def getId: Int}</code>. Instead use an explicit annotation:
+.LP 컴파일러는 정제된 자료형인 <code>Object with Service{def getId: Int}</code>를 
+생성한다. 대신 명시적으로 자료형을 지정한다.
 
 	def make(): Service = new Service{}
 
-Now the author is free to mix in more traits without changing the
-public type of `make`, making it easier to manage backwards
-compatibility.
+이렇게 하면 작성자가 `make`의 공개 자료형을 바꾸지 않고 자유롭게
+다른 트레잇(trait)을 믹시인할 수 있어 하위 호환성을 유지하기 
+쉬워진다.
 
-### Variance
+### 자료형 변위(變位; Variance)
 
-Variance arises when generics are combined with subtyping. They define
-how subtyping of the *contained* type relate to subtyping of the
-*container* type. Because Scala has declaration site variance
-annotations, authors of common libraries -- especially collections --
-must be prolific annotators. Such annotations are important for the
-usability of shared code, but misapplication can be dangerous.
+자료형 변위는 지네릭과 자료형 파생(subtyping)이 결합할 때 일어난다. 자료형
+가변성은 내포된 자료형의 자료형 파생과 수용하는 자료형의 자료형 
+파생의 관계를 정의한다. 스칼라는 가변성 표시를 선언하는 장소가 
+있어서, 공용 라이브러리(특히 집합체)의 저자는 
+이런 표기는 공유되는 코드의 사용성에 중요하지만 잘못 적용하면 위험하다.
 
-Invariants are an advanced but necessary aspect of Scala's typesystem,
-and should be used widely (and correctly) as it aids the application
-of subtyping.
+자료형 불변성은 고급 주제이지만 스칼라의 자료형 체계에서 필요한 측면이며,
+자료형 파생의 적용에 도움이 되므로 널리 (올바르게) 사용되어야 할 
+것이다.
 
-*Immutable collections should be covariant*. Methods that receive
-the contained type should "downgrade" the collection appropriately:
+값을 수정할 수 없는 *고정 집합체(immutable collection)는 공변(covariant)이어야 한다*.
+내포된 자료형을 전달 받는 메서드는 적절하게 집합체의 자료형을 상위로 높여야 한다.
 
 	trait Collection[+T] {
 	  def add[U >: T](other: U): Collection[U]
 	}
 
-*Mutable collections should be invariant*. Covariance
-is typically invalid with mutable collections. Consider
+내용을 수정할 수 있는 *유동 집합체(Mutable collections)는 불변(invariant)이어야 한다*.
+공변은 보통 유동값 집합체에서 유효하지 않다. 다음과 같은 집합체가 있고
 
 	trait HashSet[+T] {
 	  def add[U >: T](item: U)
 	}
 
-.LP and the following type hierarchy:
+.LP 다음의 자료형 상속 계층이 있을 때
 
 	trait Mammal
 	trait Dog extends Mammal
 	trait Cat extends Mammal
 
-.LP If I now have a hash set of dogs
+.LP Dog의 HashSet이 있는데
 
 	val dogs: HashSet[Dog]
 
-.LP treat it as a set of Mammals and add a cat.
+.LP 이를 Mammal의 HashSet으로 취급하고 Cat을 추가했다면
 
 	val mammals: HashSet[Mammal] = dogs
 	mammals.add(new Cat{})
 
-.LP This is no longer a HashSet of dogs!
+.LP 더이상 Dog의 HashSet이 아니다.
 
 <!--
   *	when to use abstract type members?
   *	show contravariance trick?
 -->
 
-### Type aliases
+### 자료형 별칭
 
 Use type aliases when they provide convenient naming or clarify
 purpose, but do not alias types that are self-explanatory.
 
+자료형 별칭으로 작명이 편리해지거나 의도가 분명해진다면 
+사용하지만, 따로 설명이 필요하지 않은 자료형은 별칭을 만들지 않는다.
+
 	() => Int
 
 .LP is clearer than
+.LP 는
 
 	type IntMaker = () => Int
 	IntMaker
 
-.LP since it is both short and uses a common type. However
+.LP 보다 분명하다. 원 자료형과 별칭 모두 간략하고 일반적인 자료형이기 때문이다. 하지만,
 
 	class ConcurrentPool[K, V] {
 	  type Queue = ConcurrentLinkedQueue[V]
@@ -319,56 +321,57 @@ purpose, but do not alias types that are self-explanatory.
 	  ...
 	}
 
-.LP is helpful since it communicates purpose and enhances brevity.
+.LP 는 의도를 나타내고 더 간결하기 때문에 도움이 된다.
 
-Don't use subclassing when an alias will do.
+별칭으로 대신할 수 있을 때는 상속을 쓰지 않는다.
 
 	trait SocketFactory extends (SocketAddress => Socket)
 	
-.LP a <code>SocketFactory</code> <em>is</em> a function that produces a <code>Socket</code>. Using a type alias
+.LP <code>SocketFactory</code>는 <code>Socket</code>을 생성하는 
+함수다. 자료형 별칭을 사용하는 편이 낫다.
 
 	type SocketFactory = SocketAddress => Socket
 
-.LP is better. We may now provide function literals for values of type <code>SocketFactory</code> and also use function composition:
+.LP <code>SocketFactory</code> 자료형의 값에 함수 리터럴을 사용할 수 있으며 함수 조합도 할 수 있다.
 
 	val addrToInet: SocketAddress => Long
 	val inetToSocket: Long => Socket
 
 	val factory: SocketFactory = addrToInet andThen inetToSocket
 
-Type aliases are bound to toplevel names by using package objects:
+패키지 객체를 사용하면 자료형 별칭은 최상위 명칭에 결합된다.
 
 	package com.twitter
 	package object net {
 	  type SocketFactory = (SocketAddress) => Socket
 	}
 
-Note that type aliases are not new types -- they are equivalent to
-the syntactically substituting the aliased name for its type.
+자료형 별칭은 새로운 타입이 아님에 주의하자. 자료형 별칭은 
+이름을 자료형과 구문적으로 치환하는 것과 동일하다.
 
-### Implicits
+### 암시(Implicits)
 
-Implicits are a powerful type system feature, but they should be used
-sparingly. They have complicated resolution rules and make it
-difficult -- by simple lexical examination -- to grasp what is actually
-happening. It's definitely OK to use implicits in the following
-situations:
+암시는 강력한 형 체계 기능이지만, 아주 가끔만 사용해야 
+한다. 처리하는 규칙이 복잡해서 (단순한 어휘 검사라도) 
+실제로 어떤 일이 일어나는지 이해하기 
+힘들다.  다음과 같은 상황이라면 분명히 암시를 사용해도
+좋다.
 
-* Extending or adding a Scala-style collection
-* Adapting or extending an object ("pimp my library" pattern)
-* Use to *enhance type safety* by providing constraint evidence
-* To provide type evidence (typeclassing)
-* For `Manifest`s
+* 스칼라 방식의 집합체를 확장하거나 추가함
+* 객체를 도입하거나 확장함 ("[라이브러리 중매][pimp my library]" pattern)
+* [제약 증거][generalized type constraints]를 사용해 형 안전성을 강화하는 데 사용
+* [형 증거][type evidence]를 제공함
+* [Manifest][Manifest] 용
 
-If you do find yourself using implicits, always ask yourself if there is
-a way to achieve the same thing without their help.
+암시를 사용할 때면 언제나 암시 없이 동일한 결과를 얻을 방법이 없나
+찾아본다.
 
-Do not use implicits to do automatic conversions between similar
-datatypes (for example, converting a list to a stream); these are
-better done explicitly because the types have different semantics, and
-the reader should beware of these implications.
+비슷한 자료형으로 자동 변환하려고 암시를 사용하지 말자[예를들어, 
+스트림(Stream)을 리스트(List)로 변환한다거나]. 두 형이 다르게 동작해서
+코드를 읽는 사람이 암시적 방법이 사용되었는지 주의해야 하므로
+명시적 변환이 낫다.
 
-## Collections
+## 집합체(Collections)
 
 Scala has a very generic, rich, powerful, and composable collections
 library; collections are high level and expose a large set of
@@ -1748,3 +1751,7 @@ provided much helpful guidance and many excellent suggestions.
 [Scala]: http://www.scala-lang.org/
 [Finagle]: http://github.com/twitter/finagle
 [Util]: http://github.com/twitter/util
+[pimp my library]: http://www.artima.com/weblogs/viewpost.jsp?thread=179766
+[generalized type constraints]: http://www.dzone.com/links/r/using_generalized_type_constraints_how_to_remove.html
+[type evidence]: http://stackoverflow.com/questions/3427345/what-do-and-mean-in-scala-2-8-and-where-are-they-documented
+[Manifest][http://www.scala-lang.org/api/current/index.html#scala.reflect.Manifest]
