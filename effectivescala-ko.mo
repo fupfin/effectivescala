@@ -373,25 +373,24 @@ purpose, but do not alias types that are self-explanatory.
 
 ## 집합체(Collections)
 
-Scala has a very generic, rich, powerful, and composable collections
-library; collections are high level and expose a large set of
-operations. Many collection manipulations and transformations can be
-expressed succinctly and readably, but careless application of its
-features can often lead to the opposite result. Every Scala programmer
-should read the [collections design
-document](http://www.scala-lang.org/docu/files/collections-api/collections.html);
-it provides great insight and motivation for Scala collections
-library.
+스칼라에는 매우 일반적이고, 기능이 풍부하고, 강력하고, 구성가능한 집합체
+라이브러리가 있다. 집합체가 고수준이고 매우 방대한 동작을 제공한다는
+뜻이다. 많은 집합체 조작과 변환 작업을 간략하고 읽기 좋게 
+표현할 수 있지만, 이 특징을 무분별하게 적용하면 역효과가 
+일어나기도 한다. 모든 스칼라 프로그래머는
+[집합체 설계 문서(collections design 
+document)](http://www.scala-lang.org/docu/files/collections-api/collections.html)를 읽어야 한다.
+이 문서에는 스칼라 집합체 라이브러리에 대한 높은 통찰과 동기가 적혀있다.
 
-Always use the simplest collection that meets your needs.
+언제나 필요를 충족하면서도 가장 단순한 집합체를 사용한다.
 
-### Hierarchy
+### 상속 계층(Hierarchy)
 
-The collections library is large: in addition to an elaborate
-hierarchy -- the root of which being `Traversable[T]` -- there are
-`immutable` and `mutable` variants for most collections. Whatever
-the complexity, the following diagram contains the important 
-distinctions for both `immutable` and `mutable` hierarchies
+집합체 라이브러리는 방대하다. (Traversable[T]를 원점으로한) 
+정교한 상속 계층 구조는 물론, 대부분의 집합체예 
+'불변(immutable)'과 '가변(immutable)' 두 가지 변종이 있다. 아무리 
+복잡하더라도, 다음 도식은 '불변'과 '가변' 계층 구조에 공통된
+주요 특징을 표현한다.
 
 <img src="coll.png" style="margin-left: 3em;" />
 .cmd
@@ -416,52 +415,50 @@ arrow from Iterable.s to Map.nw
 EOF
 .endcmd
 
-.LP <code>Iterable[T]</code> is any collection that may be iterated over, they provide an <code>iterator</code> method (and thus <code>foreach</code>). <code>Seq[T]</code>s are collections that are <em>ordered</em>, <code>Set[T]</code>s are mathematical sets (unordered collections of unique items), and <code>Map[T]</code>s are associative arrays, also unordered.
+.LP <code>Iterable[T]</code>인 모든 집합체는 하나씩 반복해서 탐색할 수 있고, <code>iterator</code>(그리고 <code>foreach</code>) 메서드가 있다. <code>Seq[T]</code>은 순서가 있는 집합체, <code>Set[T]</code>는 수학적인 집합(고유한 값의 순서 없는 집합체), <code>Map[T]</code>는 순서 없는 [연관 배열][Associative Array]이다.
 
-### Use
+### 사용
 
-*Prefer using immutable collections.* They are applicable in most
-circumstances, and make programs easier to reason about since they are
-referentially transparent and are thus also threadsafe by default.
+*가능한 불변 집합체를 사용한다.* 불변 집합체는 대부분의 상황에
+적용 가능하며, 투명하게 참조되고 기본적으로 쓰레드에 안전하기도 해서
+프로그램을 추론하기 쉽게 한다. 
 
-*Use the `mutable` namespace explicitly.* Don't import
-`scala.collection.mutable._` and refer to `Set`, instead
+*`mutable` 이름공간을 명시적으로 사용한다.* 
+`scala.collection.mutable._`을 임포트해서 `Set`을 참조하는 대신
+다음과 같이 하면, 가변형을 사용한다는 사실이 분명해진다.
 
 	import scala.collection.mutable
 	val set = mutable.Set()
 
-.LP makes it clear that the mutable variant is being used.
-
-*Use the default constructor for the collection type.* Whenever you
-need an ordered sequence (and not necessarily linked list semantics),
-use the `Seq()` constructor, and so on:
+*집합체형에는 기본 생성자를 사용한다.* 순서에 맞춰
+값을 나열해야 할 때(그리고 링크드 리스트 방식이 필요 없다면)면
+`Seq()` 생성자를 사용하고, 이런 식으로 다음과 같이 한다.
 
 	val seq = Seq(1, 2, 3)
 	val set = Set(1, 2, 3)
 	val map = Map(1 -> "one", 2 -> "two", 3 -> "three")
 
-.LP This style separates the semantics of the collection from its implementation, letting the collections library uses the most appropriate type: you need a <code>Map</code>, not necessarily a Red-Black Tree. Furthermore, these default constructors will often use specialized representations: for example, <code>Map()</code> will use a 3-field object for maps with 3 keys.
+.LP 이런 방식은 집합의 동작과 구현을 분리한다. 집합체 라이브러리가 가장 적합한 집합체를 사용하도록한다. 우리가 필요한 것은 <code>Map</code>이지 [레드-블랙 트리][red-black tree]가 아니다. 더우기, 이 기본 생성자들은 종종 특별하게 표현된다. 예를들어, <code>Map()</code>은 키 셋과 값을 묶을 때 필드가 셋인 객체를 사용한다. 
 
-The corrolary to the above is: in your own methods and constructors, *receive the most generic collection
-type appropriate*. This typically boils down to one of the above:
-`Iterable`, `Seq`, `Set`, or `Map`. If your method needs a sequence,
-use `Seq[T]`, not `List[T]`.
+지금까지의 결론은, 우리가 만드는 메서드와 생성자에서는, *적합한 집합체 
+중 가장 일반적인 유형을 받도록 한다*. 보통은 위에 나열한 `Iterable`, 
+`Seq`, `Set`, `Map` 중 하나로 압축된다. 
 
 <!--
-something about buffers for construction?
-anything about streams?
+버퍼를 사용한 집합체 생성과 관련해 뭔가 있지 않을까?
+스트림(stream)에는 아무것도 없나요?
 -->
 
-### Style
+### 스타일
 
-Functional programming encourages pipelining transformations of an
-immutable collection to shape it to its desired result. This often
-leads to very succinct solutions, but can also be confusing to the
-reader -- it is often difficult to discern the author's intent, or keep
-track of all the intermediate results that are only implied. For example,
-let's say we wanted to aggregate votes for different programming 
-languages from a sequence of (language, num votes), showing them
-in order of most votes to least, we could write:
+함수형 언어에서는 불변 집합체를 가다듬어 원하는 결과를 얻으려 할 때
+변환작업을 파이프라인처럼 이어서 처리하기를 권장한다. 대개 
+이런 방식은 해법이 간결해지는 반면, 이해하기 어려워지기도 
+한다. 작성자의 의도를 알아차리지 못할 때가 많고 
+중간 결과가 드러나지 않아 일일이 따라가기 어렵다. 예를 들어,
+연속된 (언어, 득표수)에서 프로그래밍 언어 마다 얻은 표를 
+모아서 많인 얻은 표 순으로 표시하고 싶다고 하자. 다음과 같이
+작성할 수 있다.
 	
 	val votes = Seq(("scala", 1), ("java", 4), ("scala", 10), ("scala", 1), ("python", 10))
 	val orderedVotes = votes
@@ -472,7 +469,7 @@ in order of most votes to least, we could write:
 	  .sortBy(_._2)
 	  .reverse
 
-.LP this is both succinct and correct, but nearly every reader will have a difficult time recovering the original intent of the author. A strategy that often serves to clarify is to <em>name intermediate results and parameters</em>:
+.LP 이 코드는 간략하면서도 올바로 동작한다. 하지만, 작성자의 원래 의도를 찾으려면 거의 모든 사람이 한동안 어려움을 격을 것이다. 대개 <em>중간 결과와 매개변수에 이름을 부여</em>하는 전략을 사용하면 의도가 명확해진다.
 
 	val votesByLang = votes groupBy { case (lang, _) => lang }
 	val sumByLang = votesByLang map { case (lang, counts) =>
@@ -483,7 +480,7 @@ in order of most votes to least, we could write:
 	  .sortBy { case (_, count) => count }
 	  .reverse
 
-.LP the code is nearly as succinct, but much more clearly expresses both the transformations take place (by naming intermediate values), and the structure of the data being operated on (by naming parameters). If you worry about namespace pollution with this style, group expressions with <code>{}</code>:
+.LP 이 코드는 여전히 간결하면서, 훨씬 명확하게 (중간 값에 이름을 지어) 두 변환 작업과 (매개변수에 이름을 지어) 처리할 데이터의 구조를 표현한다. 이런 식으로 이름을 너무 남발해서 나중에 쓰고 싶을 때 못 쓰게 될 일이 걱정된다면, 식을 <code>{}</code>로 묶도록 한다.
 
 	val orderedVotes = {
 	  val votesByLang = ...
@@ -491,45 +488,46 @@ in order of most votes to least, we could write:
 	}
 
 
-### Performance
+### 성능
 
-High level collections libraries (as with higher level constructs
-generally) make reasoning about performance more difficult: the
-further you stray from instructing the computer directly -- in other
-words, imperative style -- the harder it is to predict the exact
-performance implications of a piece of code. Reasoning about
-correctness however, is typically easier; readability is also
-enhanced. With Scala the picture is further complicated by the Java
-runtime; Scala hides boxing/unboxing operations from you, which can
-incur severe performance or space penalties.
+(고도로 추상화된 코드가 보통 그렇듯) 집합체 
+라이브러리는 성능을 예측하기 더 어렵다. 컴퓨터에 
+직접 지시하는 방식(즉 명령형)에서 
+벗어날 수록 코드 조각의 성능에 미칠 영향을 
+정확히 추측하기 어렵다. 하지만, 일반적으로 
+정당성은 추론하기 더 쉽고 가독성도 
+향상된다. 스칼라에서는 자바 런타임 때문에 상황이 더욱 
+복잡하다. 스칼라는 박싱/언박싱 동작을 숨기는데, 이 때문에 
+심각한 성능이나 메모리의 불이익이 일어난다.
 
-Before focusing on low level details, make sure you are using a
-collection appropriate for your use. Make sure your datastructure
-doesn't have unexpected asymptotic complexity. The complexities of the
-various Scala collections are described
-[here](http://www.scala-lang.org/docu/files/collections-api/collections_40.html).
+하부의 상세한 내용에 집중하기 전에, 용도에 알맞게
+집합체를 사용하도록 하자. 데이터 구조에 예기치 못한 
+[점근적 복잡도][asymptotic complexity]가 있지 않나 확인하자.  다양한 스칼라 
+집합체의 점근적 복잡도는 
+[여기](http://www.scala-lang.org/docu/files/collections-api/collections_40.html)에
+적혀있다.
 
-The first rule of optimizing for performance is to understand *why*
-your application is slow. Do not operate without data;
-profile^[[Yourkit](http://yourkit.com) is a good profiler] your
-application before proceeding. Focus first on hot loops and large data
-structures. Excessive focus on optimization is typically wasted
-effort. Remember Knuth's maxim: "Premature optimisation is the root of
-all evil."
+성능 최적화의 첫번째 규칙은 애플리케이션이 
+느린 *이유*를 이해하는 것이다. 근거 자료 없이 일하지 말라. 
+일을 진행하기 전에 애플리케이션을 
+프로파일^[Yourkit] 하자. 대규모 반복 시행 로직이나 대량 데이터
+구조에 먼저 초점을 두도록 한다. 최적화에 너무 초점을 맞추다 보면
+이득 없이 수고만 하게 된다. 크누스(Knuth)의 금언을 기억하자. "조기 최적화는
+만악의 근원이다."
 
-It is often appropriate to use lower level collections in situations
-that require better performance or space efficiency. Use arrays
-instead of lists for large sequences (the immutable `Vector`
-collections provides a referentially transparent interface to arrays);
-and use buffers instead of direct sequence construction when
-performance matters.
+성능 좋거나 메모리가 효율적이여하는 상황에는 대개 낮은 추상화 
+수준의 집합체를 사용하는 편이 타당하다. 대규모 순열(sequence)에는 
+리스트 대신 배열(불변 `Vector` 집합체는 배열과 
+[참조 투명][reftrans]한 인터페이스를 제공함)을 사용한다. 
+그리고 성능이 문제가 될 때에는 직접 순열을 구성하기 
+보다 버퍼를 사용한다.
 
-### Java Collections
+### 자바 집합체
 
-Use `scala.collection.JavaConverters` to interoperate with Java collections.
-These are a set of implicits that add conversion `asJava` and `asScala` conversion
-methods. The use of these ensures that such conversions are explicit, aiding
-the reader:
+자바 집합체와 상호운용할 때는 `scala.collection.JavaConverters`를 사용한다.
+이 객체는 암묵적으로 자바로 변환하는 `asJava`와 스칼라로 변환하는 `asScala` 변환 
+메서드들을 추가한다. 변환 작업에 이 메서드를 명시적으로 사용해서 코드를 읽기 
+좋게 한다.
 
 	import scala.collection.JavaConverters._
 	
@@ -1754,4 +1752,9 @@ provided much helpful guidance and many excellent suggestions.
 [pimp my library]: http://www.artima.com/weblogs/viewpost.jsp?thread=179766
 [generalized type constraints]: http://www.dzone.com/links/r/using_generalized_type_constraints_how_to_remove.html
 [type evidence]: http://stackoverflow.com/questions/3427345/what-do-and-mean-in-scala-2-8-and-where-are-they-documented
-[Manifest][http://www.scala-lang.org/api/current/index.html#scala.reflect.Manifest]
+[Manifest]: http://www.scala-lang.org/api/current/index.html#scala.reflect.Manifest
+[Associative Array]: https://ko.wikipedia.org/wiki/%EC%97%B0%EA%B4%80_%EB%B0%B0%EC%97%B4
+[red-black tree]: http://ko.wikipedia.org/wiki/%EB%A0%88%EB%93%9C-%EB%B8%94%EB%9E%99_%ED%8A%B8%EB%A6%AC
+[asymptotic complexity]: http://ko.wikipedia.org/wiki/%EC%95%8C%EA%B3%A0%EB%A6%AC%EC%A6%98_%EB%B6%84%EC%84%9D
+[reftrans]: http://en.wikipedia.org/wiki/Referential_transparency_%28computer_science%29
+^[Yourkit]: [Yourkit](http://yourkit.com)은 훌륭한 프로파일러다.
