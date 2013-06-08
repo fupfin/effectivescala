@@ -534,58 +534,58 @@ EOF
 	val list: java.util.List[Int] = Seq(1,2,3,4).asJava
 	val buffer: scala.collection.mutable.Buffer[Int] = list.asScala
 
-## Concurrency
+## 동시성
 
-Modern services are highly concurrent -- it is common for servers to
-coordinate 10s-100s of thousands of simultaneous operations -- and
-handling the implied complexity is a central theme in authoring robust
-systems software.
+최신 서비스는 (여러 서버가 수 만에서 수십 만개의 작업을 동시에 
+실행하는 게 일반적일 정도로) 매우 많은 작업을 동시에 수행하며
+내재된 복잡도를 처리하는 방법이 견고한 시스템 소프트웨어을 개발하는 
+문제에서 중심 주제이다.
 
-*Threads* provide a means of expressing concurrency: they give you
-independent, heap-sharing execution contexts that are scheduled by the
-operating system. However, thread creation is expensive in Java and is
-a resource that must be managed, typically with the use of pools. This
-creates additional complexity for the programmer, and also a high
-degree of coupling: it's difficult to divorce application logic from
-their use of the underlying resources.
+*쓰레드(Threads)*는 동시성을 표현하는 한가지 수단이다. 쓰레드는 
+독립적이며 힙을 공유하는 실행 컨텍스트로서 운영 시스템이 일정을 
+관리를 한다. 좌우간, 자바에서 쓰레드는 생성 비용이 비싸서
+관리해야만 하는 자원 중 하나다. 보통은 풀(pool)을 사용해서 관리한다.
+이로 인해 프로그래머가 처리해야할 복잡도는 올라가고 결합도도 
+같이 올라간다. 애플리케이션 로직을, 기반 자원을 사용하는 로직에서
+분리하는 일은 어렵다.
 
-This complexity is especially apparent when creating services that
-have a high degree of fan-out: each incoming request results in a
-multitude of requests to yet another tier of systems. In these
-systems, thread pools must be managed so that they are balanced
-according to the ratios of requests in each tier: mismanagement of one
-thread pool bleeds into another. 
+이런 복잡도는 특히, 요청 하나하나가 시스템의 또 
+다른 계층을 향한 다수의 요청을 일으키는 유형의 
+서비스를 만들 때 발생한다. 이런 시스템에서는
+쓰레드 풀을 관리해서 각 계층의 요청이 일정 
+비율로 균형을 이루도록 해야 한다. 한쪽에서 쓰레드 풀 관리에 
+실패하면 다른 계층으로 문제가 번지게 된다.
 
-Robust systems must also consider timeouts and cancellation, both of
-which require the introduction of yet more "control" threads,
-complicating the problem further. Note that if threads were cheap
-these problems would be diminished: no pooling would be required,
-timed out threads could be discarded, and no additional resource
-management would be required.
+견고한 시스템은 시간제한(timeout)과 취소도 고려해야 한다. 이로 
+인해 또 다른 "제어" 쓰레드를 도입해야 할 필요가 생기고 
+문제는 더욱 복잡해진다. 쓰레드가 가볍다면 
+이런 문제가 줄어든다는 것에 주목하자. 풀 관리도 필요 없고,
+제한 시간을 넘긴 쓰레드는 제외될 것이고, 부가적인 자원
+관리가 필요 없기 때문이다.
 
-Thus resource management compromises modularity.
+이렇게 자원 관리는 모듈화 수준에 손상을 입힌다.
 
-### Futures
+### 퓨처(Futures)
 
-Use Futures to manage concurrency. They decouple
-concurrent operations from resource management: for example, [Finagle][Finagle]
-multiplexes concurrent operations onto few threads in an efficient
-manner. Scala has lightweight closure literal syntax, so Futures
-introduce little syntactic overhead, and they become second nature to
-most programmers.
+퓨처를 동시성 관리에 사용하자. 퓨처는 동시 작업을
+자원 관리에서 떼어 놓는다. 예를들어, [피네글(Finagle)][Finagle]은
+다수의 동시 작업을 효율적인 방법으로 소수의 쓰레드에서 
+처리한다. 스칼라에는 경량 클로저 리터랄 구문(closure literal syntax)이 있어서,
+퓨처를 위해 구문이 번잡해지는 일은 없으며, 그래서 퓨처는 대부분의 
+개발자에게 제2의 천성처럼 자연스러워진다.
 
-Futures allow the programmer to express concurrent computation in a
-declarative style, are composable, and have principled handling of
-failure. These qualities has convinced us that they are especially
-well suited for use in functional programming languages, where this is
-the encouraged style.
+프로그래머는 퓨처를 사용해서 동시 계산 작업을 선언적인 방식으로 표현할 
+수 있으며, 퓨처는 구성이 가능하고, 원칙에 따라 실패를 처리할 방편이 
+있다. 이런 특성 때문에 우리는 함수형 프로그래밍이 권장되는 방식인 
+경우 퓨처가 함수형 프로그래밍 언어에서 특히 사용하기 적합하다고 
+생각했다.
 
-*Prefer transforming futures over creating your own.* Future
-transformations ensure that failures are propagated, that
-cancellations are signalled, and frees the programmer from thinking
-about the implications of the Java memory model. Even a careful
-programmer might write the following to issue an RPC 10 times in
-sequence and then print the results:
+*직접 만들기 보다 퓨처를 변형하도록 하자.* 퓨처 
+변형은 실패를 전파하도록 보장하고, 취소된 사실을 
+신호로 확실히 알리며, 자바 메모리 모델을 구현하려는 
+고민에서 프로그래머를 해방한다. 조심스런 프로그래머라도 다음과 같이
+원격호출(RPC)를 10회 연속으로 일으키고 결과를 출력하는 코드를 
+작성할지도 모른다.
 
 	val p = new Promise[List[Result]]
 	var results: List[Result] = Nil
@@ -606,12 +606,12 @@ sequence and then print the results:
 	  printf("Got results %s\n", results.mkString(", "))
 	}
 
-The programmer had to ensure that RPC failures are propagated,
-interspersing the code with control flow; worse, the code is wrong!
-Without declaring `results` volatile, we cannot ensure that `results`
-holds the previous value in each iteration. The Java memory model is a
-subtle beast, but luckily we can avoid all of these pitfalls by using
-the declarative style:
+이 프로그래머는 원격호출이 실패할 때 전파되도록 했어야 했는데,
+제어 흐름 중간에 어지럽게 이 코드를 삽입했다. 더 안 좋은 사실은, 이 코드는 틀렸다!
+`results`를 volatile로 선언하지 않고는`results`가 반복할 때마다 
+이전 값을 가지고 있다고 확신할 수 없다. 자바 메모리 모델은
+예측하기 힘든 짐승이다. 하지만, 다행히도 선언 방식을 사용해서 이 
+함정을 모두 피할 수 있다.
 
 	def collect(results: List[Result] = Nil): Future[List[Result]] =
 	  doRpc() flatMap { result =>
@@ -625,48 +625,47 @@ the declarative style:
 	  printf("Got results %s\n", results.mkString(", "))
 	}
 
-We use `flatMap` to sequence operations and prepend the result onto
-the list as we proceed. This is a common functional programming idiom
-translated to Futures. This is correct, requires less boilerplate, is
-less error prone, and also reads better.
+`flatMap`을 사용해서 작업을 순서대로 배열하고 결과를 처리된 순서에 따라
+리스트로 준비한다. 이 방식은 일반적인 함수형 프로그래밍 관용구를
+퓨처로 옮긴 것이다. 이렇게 하는 게 맞다. 불필요한 코드가 줄고,
+오류 가능성도 줄고, 가독성도 좋아졌다.
 
-*Use the Future combinators*. `Future.select`, `Future.join`, and
-`Future.collect` codify common patterns when operating over
-multiple futures that should be combined.
+*퓨처 결합 기능을 사용하자*.. `Future.select`, `Future.join`, 
+`Future.collect`은 결합해야 하는 다수의 퓨처를 운영할 때의 
+공통 패턴을 체계화한다.
 
-### Collections
+### 집합체
 
-The subject of concurrent collections is fraught with opinions,
-subtleties, dogma and FUD. In most practical situations they are a
-nonissue: Always start with the simplest, most boring, and most
-standard collection that serves the purpose. Don't reach for a
-concurrent collection before you *know* that a synchronized one won't
-do: the JVM has sophisticated machinery to make synchronization cheap,
-so their efficacy may surprise you.
+동시 처리 집합체라는 주제는 의견, 미묘한 차이, 
+광신(dogma), 악평(FUD)으로 가득하다. 대부분의 실제 상황에서 이것들은
+문제가 되지 않는다. 언제나 목적에 맞는 것 중에 가장 단순하고, 
+가장 평범하고, 가장 표준적인 집합체에서 시작하자. 동기화된 집합체가
+무엇을 할 수 없는지 *알기* 전에는 동시 처리 집합체를 고려하지 
+말자. JVM에는 동기화를 가볍게 처리는 정교한 장치가 있어서
+그 효과를 보면 놀랄 것이다.
 
-If an immutable collection will do, use it -- they are referentially
-transparent, so reasoning about them in a concurrent context is
-simple. Mutations in immutable collections are typically handled by
-updating a reference to the current value (in a `var` cell or an
-`AtomicReference`). Care must be taken to apply these correctly:
-atomics must be retried, and `vars` must be declared volatile in order
-for them to be published to other threads.
+불변 집합체로 처리할 수 있으면 그것을 사용하자. 불변 
+집합체는 참조 투명하여 동시성 상황에서 증명이 
+간단하다. 불변 집합체를 변경할 때는 일반적으로 
+(`var` 변수나 `AtomicReference` 속) 현재값의 참조를 
+갱신한다. 이것들을 올바로 적용하도록 주의해야 한다.
+원자적(atomic) 값은 재시도해야하며, `var` 변수는 volatile을 
+선언해야 다른 쓰레드와 공유할 수 있다. 
 
-Mutable concurrent collections have complicated semantics, and make
-use of subtler aspects of the Java memory model, so make sure you
-understand the implications -- especially with respect to publishing
-updates -- before you use them. Synchronized collections also compose
-better: operations like `getOrElseUpdate` cannot be implemented
-correctly by concurrent collections, and creating composite
-collections is especially error prone.
+가변 동시 집합체는 복잡하게 작동하며, 자바 메모리 
+모델의 미묘한 측면을 이용하기 때문에, 이것들을 사용하기 
+전에 반드시 미치는 영향을 이해해도록 해라. 특히 갱신된 값을 게시하는 
+방법에 주의하자. 동기화된 집합체는 구성에도 유리한데, `getOrElseUpdate` 
+같은 연산은 동시 집합체에서 올바로 구현될 수 없어서 합성 집합체를
+만들면 오류가 일어나기 쉽다.
 
 <!--
 
-use the stupid collections first, get fancy only when justified.
+시시한 집합체를 먼저 사용하고, 정당할 때에만 멋을 부려라.
 
-serialized? synchronized?
+직렬화? 동기화?
 
-blah blah.
+주절주절.
 
 Async*?
 
