@@ -672,7 +672,7 @@ Async*?
 -->
 
 
-## Control structures
+## 제어 구조
 
 Programs in the functional style tends to require fewer traditional
 control structure, and read better when written in the declarative
@@ -683,14 +683,30 @@ expression-oriented: branches of conditionals compute values of
 the same type, `for (..) yield` computes comprehensions, and recursion
 is commonplace.
 
-### Recursion
+함수형 방식의 프로그램에서는 전통적인 제어 구조를 최소화 
+하는 경향이며, 선언적인 방식으로 작성했을 때 (코드를) 읽기
+좋다. 이는 보통 로직을 여러 작은 메서드나 함수로 쪼갠다는 
+의미를 내포하며, 이들은 `match` 식으로 함께 
+합쳐진다. 함수형 프로그램은 보다 식 중심인 
+편이기도 하다. 조건의 분기는 동일한 형의 값을 
+계산하며, `for (..) yield`는 제시조건(comprehension)를 계산하고, 재귀는
+일상이다.
+
+### 재귀(Recursion)
 
 *Phrasing your problem in recursive terms often simplifies it,* and if
 the tail call optimization applies (which can be checked by the `@tailrec`
 annotation), the compiler will even translate your code into a regular loop.
 
+*문제를 재귀로 표현하면 대부분 문제가 단순해지며,* 꼬리 
+재귀 최적화(`@tailrec` 어노테이션으로 확인할 수 있음)가 
+적용되면, 컴파일러는 코드를 일반적인 반복구로 변환하기까지 할 것이다.  
+
 Consider a fairly standard imperative version of heap <span
 class="algo">fix-down</span>:
+
+상당히 표준적인 절차형의 힙(heap) <span
+class="algo">자리잡기 함수</span>를 보자.
 
 	def fixDown(heap: Array[T], m: Int, n: Int): Unit = {
 	  var k: Int = m
@@ -713,9 +729,19 @@ which branches were taken, and it returns in the middle of the loop
 when the correct position was found (The keen reader will find similar
 arguments in Dijkstra's ["Go To Statement Considered Harmful"](http://www.u.arizona.edu/~rubinson/copyright_violations/Go_To_Considered_Harmful.html)).
 
+while 루프에 들어갈 때마다, 이전 단계에서 손상된
+상태값을 가지고 작업을 해야 한다. 각 변수의 값은 어떤 
+분기를 선택하는 기능을 하며, 정확한 위치를 찾고나면
+루프의 중간에서 복귀한다[날카로운 사람이라면 
+["Go To Statement Considered Harmful"](http://www.u.arizona.edu/~rubinson/copyright_violations/Go_To_Considered_Harmful.html)에서
+데익스트라(Dijkstra)가 말한 비슷한 주장을 발견할 것이다].
+
 Consider a (tail) recursive
 implementation^[From [Finagle's heap
 balancer](https://github.com/twitter/finagle/blob/master/finagle-core/src/main/scala/com/twitter/finagle/loadbalancer/Heap.scala#L41)]:
+
+(꼬리) 재귀 구현^[[Finagle's heap
+balancer](https://github.com/twitter/finagle/blob/master/finagle-core/src/main/scala/com/twitter/finagle/loadbalancer/Heap.scala#L41) 참고]을 고려하자.
 
 	@tailrec
 	final def fixDown(heap: Array[T], i: Int, j: Int) {
@@ -730,12 +756,14 @@ balancer](https://github.com/twitter/finagle/blob/master/finagle-core/src/main/s
 
 .LP here every iteration starts with a well-defined <em>clean slate</em>, and there are no reference cells: invariants abound. It&rsquo;s much easier to reason about, and easier to read as well. There is also no performance penalty: since the method is tail-recursive, the compiler translates this into a standard imperative loop.
 
+.LP 이 코드에서 모든 반복은 잘 정의된 백지 상태에서 시작하며, 참조도 사용되지 않아 모든것이 불변이다. 추론도 훨씬 쉽고, 그만큼 읽기도 쉽다. 성능상의 불이익도 없는데, 이 메서드는 꼬리 재귀라서, 컴파일러가 표준 절차형 루프로 변환하기 때문이다.
+
 <!--
-elaborate..
+자세히 설명..
 -->
 
 
-### Returns
+### 반환(return)
 
 This is not to say that imperative structures are not also valuable.
 In many cases they are well suited to terminate computation early
@@ -743,11 +771,25 @@ instead of having conditional branches for every possible point of
 termination: indeed in the above `fixDown`, a `return` is used to
 terminate early if we're at the end of the heap.
 
+앞에서 절차형 구조가 가치 없다고 얘기하려던 것이 아니다.
+많은 경우, 조기에 계산을 종료하는 편이 매 
+종료 가능 지점마다 조건 분기를 하는 것 보다 
+적절하다. 확실히 앞의 `fixDown`에서 힙의 끝에 다다르면
+`return`으로 조기에 메서드를 나간다.
+
 Returns can be used to cut down on branching and establish invariants.
 This helps the reader by reducing nesting (how did I get here?) and
 making it easier to reason about the correctness of subsequent code
 (the array cannot be accessed out of bounds after this point). This is
 especially useful in "guard" clauses:
+
+
+반환을 분기를 줄이고 불변을 확정하는 용도로 사용할 수 있다.
+(흐름을 잃기 쉬운) 중첩이 줄어 코드를 읽기 좋고 
+뒤따르는 코드에 문제가 없는지 판단하기 쉬워진다(반환 지점
+이후로는 배열의 범위를 넘어서서 접근하는 일이 있을 수 없음). 이런 특징은
+"보호"절에서 특히 유용하다.
+
 
 	def compare(a: AnyRef, b: AnyRef): Int = {
 	  if (a eq b)
@@ -764,6 +806,11 @@ Use `return`s to clarify and enhance readability, but not as you would
 in an imperative language; avoid using them to return the results of a
 computation. Instead of
 
+`return`을 가독성을 분명하게 하고 개선하는데 사용하고, 절차형 언어에서
+하듯이 계산 결과를 반환하는 용도로 사용하지 
+말자. 다음과 같이 하기 보다는
+
+
 	def suffix(i: Int) = {
 	  if      (i == 1) return "st"
 	  else if (i == 2) return "nd"
@@ -771,7 +818,7 @@ computation. Instead of
 	  else             return "th"
 	}
 
-.LP prefer:
+.LP 다음과 같이 하는 게 낫고
 
 	def suffix(i: Int) =
 	  if      (i == 1) "st"
@@ -779,7 +826,7 @@ computation. Instead of
 	  else if (i == 3) "rd"
 	  else             "th"
 
-.LP but using a <code>match</code> expression is superior to either:
+.LP <code>match</code> 식이 가장 좋다.
 
 	def suffix(i: Int) = i match {
 	  case 1 => "st"
@@ -788,7 +835,7 @@ computation. Instead of
 	  case _ => "th"
 	}
 
-Note that returns can have hidden costs: when used inside of a closure,
+반환에는 드러나지 않은 비용이 있음에 주의하자. 클로저 안에서 사용하면
 
 	seq foreach { elem =>
 	  if (elem.isLast)
@@ -797,9 +844,9 @@ Note that returns can have hidden costs: when used inside of a closure,
 	  // process...
 	}
 	
-.LP this is implemented in bytecode as an exception catching/throwing pair which, used in hot code, has performance implications.
+.LP 예외를 던지고 잡는 바이트코드로 구현이되기 때문에 (많이 실행되는 코드라면) 성능에 영향을 준다.
 
-### `for` loops and comprehensions
+### `for` 루프와 조건제시법
 
 `for` provides both succinct and natural expression for looping and
 aggregation. It is especially useful when flattening many sequences.
@@ -1757,3 +1804,4 @@ provided much helpful guidance and many excellent suggestions.
 [asymptotic complexity]: http://ko.wikipedia.org/wiki/%EC%95%8C%EA%B3%A0%EB%A6%AC%EC%A6%98_%EB%B6%84%EC%84%9D
 [reftrans]: http://en.wikipedia.org/wiki/Referential_transparency_%28computer_science%29
 ^[Yourkit]: [Yourkit](http://yourkit.com)은 훌륭한 프로파일러다.
+
