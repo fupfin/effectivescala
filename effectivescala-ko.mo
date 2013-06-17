@@ -516,10 +516,10 @@ EOF
 만악의 근원이다."
 
 성능 좋거나 메모리가 효율적이여하는 상황에는 대개 낮은 추상화 
-수준의 집합체를 사용하는 편이 타당하다. 대규모 순열(sequence)에는 
+수준의 집합체를 사용하는 편이 타당하다. 대규모 수열(sequence)에는 
 리스트 대신 배열(불변 `Vector` 집합체는 배열과 
 [참조 투명][reftrans]한 인터페이스를 제공함)을 사용한다. 
-그리고 성능이 문제가 될 때에는 직접 순열을 구성하기 
+그리고 성능이 문제가 될 때에는 직접 수열을 구성하기 
 보다 버퍼를 사용한다.
 
 ### 자바 집합체
@@ -732,7 +732,7 @@ arguments in Dijkstra's ["Go To Statement Considered Harmful"](http://www.u.ariz
 while 루프에 들어갈 때마다, 이전 단계에서 손상된
 상태값을 가지고 작업을 해야 한다. 각 변수의 값은 어떤 
 분기를 선택하는 기능을 하며, 정확한 위치를 찾고나면
-루프의 중간에서 복귀한다[날카로운 사람이라면 
+루프의 중간에서 복귀한다[예리한 사람이라면 
 ["Go To Statement Considered Harmful"](http://www.u.arizona.edu/~rubinson/copyright_violations/Go_To_Considered_Harmful.html)에서
 데익스트라(Dijkstra)가 말한 비슷한 주장을 발견할 것이다].
 
@@ -854,27 +854,48 @@ The syntax of `for` belies the underlying mechanism as it allocates
 and dispatches closures. This can lead to both unexpected costs and
 semantics; for example
 
+`for`는 반복과 취합을 간결하고도 자연스럽게 표현하는 방편을 
+제공한다. `for`는 여러 수열을 단순하게 할 때 특히 유용하다.
+`for`는 내부에서 클로저를 할당하고 호출하지만 구문은 이런 구조를
+감춘다. 이로 인해 예기치 못한 비용과 이상 작동을
+격게 된다. 예를 들어, 다음 코드에서 container의 연산이 지연되면 
+<code>return</code>이 지역 스코프를 벗어나기 때문에 실행시에 
+오류가 발생한다. 
+
+
 	for (item <- container) {
 	  if (item != 2) return
 	}
 
 .LP may cause a runtime error if the container delays computation, making the <code>return</code> nonlocal!
+.LP  
 
 For these reasons, it is often preferrable to call `foreach`,
 `flatMap`, `map`, and `filter` directly -- but do use `for`s when they
 clarify.
 
-### `require` and `assert`
+이런 이유로, `foreach`, `flatMap`, `map`, `filter`을 직접 호출하는 
+편이 대부분은 낫다. 물론 분명히 `for`를 써야 할 때는 사용하도록 한다.
+ 
+### `require`와 `assert`
 
 `require` and `assert` both serve as executable documentation. Both are
 useful for situations in which the type system cannot express the required
 invariants. `assert` is used for *invariants* that the code assumes (either
 internal or external), for example
 
+`require`와 `assert` 모두 실행되는 문서를 만드는 데 쓰인다. 둘 다
+형 체계가 필요한 결정 사항을 표현하지 못하는 상황에 
+유용하다. `assert`는 코드가 가정한 (내외부의) *결정 사항*을 표현하는 데 
+사용된다. 예를 들어 다음과 같은 경우다.
+I leaved some group to stop my useless ojirapping.
+
 	val stream = getClass.getResourceAsStream("someclassdata")
 	assert(stream != null)
 
 Whereas `require` is used to express API contracts:
+
+반면에, `require`는 API의 계약 사항을 표현하는데 사용된다.
 
 	def fib(n: Int) = {
 	  require(n > 0)
